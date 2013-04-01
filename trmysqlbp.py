@@ -18,6 +18,6 @@ password = args.password
 
 outputfile = open('/backups/'+database+'-BACKUP.sql', 'w')
  
-subprocess.Popen(['mysqldump', '-uUSERNAME', '-pPASSWORD', '--single-transaction', '--opt', db], stdout=outputfile)
+subprocess.Popen(['mysqldump', '-uUSERNAME', '-pPASSWORD', '--single-transaction', '--opt', database], stdout=outputfile)
  
 outputfile.close()
