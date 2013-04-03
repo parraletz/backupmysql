@@ -18,16 +18,36 @@ username = args.username
 password = args.password
 tea = args.tea
 
+
 fecha = date.today()
 hoy= fecha.strftime("%d%m%Y")
 filename = database + '_' + hoy + '_BACKUP.sql'
 
+
+### Configuracion de logs
+logger = logging.getLogger('trbackup')
+hdlr = logging.FileHandler('/var/log/'+tea+'_trbackup'+hoy+'.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
+
 def MakeDump():
-
-
-	outputfile = open('/backups/db/'+filename, 'w') # Crea el archivo donde se volcara la base de datos 
-	subprocess.Popen(['/usr/local/mysql/bin/mysqldump', '-u'+username, '-p'+password, '--single-transaction', database], stdout=outputfile) # Se crear el dump
-	outputfile.close()
+	
+	logger.info('Se comienza con el backup de la base de datos ' + database + 'de la ' + tea )
+	try:
+		outputfile = open('/backups/db/'+filename, 'w') # Crea el archivo donde se volcara la base de datos 
+		try:
+			if tea == 'tea601':
+				subprocess.Popen(['/usr/local/mysql/bin/mysqldump', '-u'+username, '-p'+password, '--single-transaction', '--ignore-table=TEA.SUBSCRIBERS_MARKETING_20_8_9', database], stdout=outputfile) 
+			else :
+				subprocess.Popen(['/usr/local/mysql/bin/mysqldump', '-u'+username, '-p'+password, '--single-transaction', database], stdout=outputfile) # Se crear el dump
+		except OSError:
+			logger.error("El comando no existe en el sistema operativo y/o no esta en la ruta correcta, favor de verificar")
+		outputfile.close()
+	except:
+		logger.error('No fue posible crear el archivo donde se volcara la base de datos, favor de verificar que el directorio no sea de solo lectura')
 
 	time.sleep(15)
 
@@ -36,5 +56,7 @@ def MakeDump():
 	f_out.writelines(f_in)
 	f_out.close()
 	f_in.close()
+
+	logger.info('Se ha terminado satisfactoriamente el respaldo de la base de datos el archivo se encuentra en /backups/db/'+filename)
 
 MakeDump()
